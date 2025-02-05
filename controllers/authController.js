@@ -1,7 +1,7 @@
+const jwt = require('jsonwebtoken');
 const User = require('../models/userModel');
 const AppError = require('../utils/appError');
 const catchAsync = require('../utils/catchAsync');
-const jwt = require('jsonwebtoken');
 
 function signToken(id) {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -47,4 +47,17 @@ exports.login = catchAsync(async (req, res, next) => {
     status: 'success',
     token,
   });
+});
+
+exports.protect = catchAsync(async (req, res, next) => {
+  let token;
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith('Bearer')
+  ) {
+    token = req.headers.authorization.split(' ')[1];
+  }
+  console.log(token);
+
+  next();
 });
