@@ -33,6 +33,7 @@ const userShcema = new mongoose.Schema({
       message: 'Password should match password confirm',
     },
   },
+  passwordChangedAt: Date,
 });
 
 userShcema.pre('save', async function (next) {
@@ -47,6 +48,19 @@ userShcema.methods.currectPassword = async function (
   userPassword,
 ) {
   return await bcrypt.compare(candidatePassword, userPassword);
+};
+
+userShcema.methods.changedPasswordAfter = function (JWTTimestamp) {
+  if (this.passwordChangedAt) {
+    const changedTimestamp = parseInt(
+      this.passwordChangedAt.getTime() / 1000,
+      10,
+    );
+    console.log(changedTimestamp, JWTTimestamp);
+    return JWTTimestamp < changedTimestamp;
+  }
+
+  return false;
 };
 
 const User = mongoose.model('User', userShcema);
