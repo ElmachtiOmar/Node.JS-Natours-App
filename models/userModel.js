@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const validator = require('validator');
@@ -17,6 +18,11 @@ const userShcema = new mongoose.Schema({
   photo: {
     type: String,
   },
+  role: {
+    type: String,
+    enum: ['user', 'guide', 'lead-guide', 'admin'],
+    default: 'user',
+  },
   password: {
     type: String,
     required: [true, 'A user must have a password!'],
@@ -33,7 +39,20 @@ const userShcema = new mongoose.Schema({
       message: 'Password should match password confirm',
     },
   },
-  passwordChangedAt: Date,
+  passwordChangedAt: {
+    type: Date,
+  },
+  passwordResetToken: {
+    type: String,
+  },
+  passwordResetExpires: {
+    type: Date,
+  },
+  active: {
+    type: Boolean,
+    default: true,
+    select: false,
+  },
 });
 
 userShcema.pre('save', async function (next) {
@@ -43,7 +62,18 @@ userShcema.pre('save', async function (next) {
   next();
 });
 
-userShcema.methods.currectPassword = async function (
+userShcema.pre('save', function (next) {
+  if (!this.isModified('password') || this.isNew) return next();
+  this.passwordChangedAt = Date.now() - 1000;
+  next();
+});
+
+userShcema.pre(/^find/, function (next) {
+  this.find({ active: { $ne: false } });
+  next();
+});
+
+userShcema.methods.correctPassword = async function (
   candidatePassword,
   userPassword,
 ) {
@@ -61,6 +91,17 @@ userShcema.methods.changedPasswordAfter = function (JWTTimestamp) {
   }
 
   return false;
+};
+
+userShcema.methods.createPasswordResetToken = function () {
+  const resetToken = crypto.randomBytes(32).toString('hex');
+  this.passwordResetToken = crypto
+    .createHash('sha256')
+    .update(resetToken)
+    .digest('hex');
+  this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
+
+  return resetToken;
 };
 
 const User = mongoose.model('User', userShcema);

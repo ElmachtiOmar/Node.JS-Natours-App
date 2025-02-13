@@ -32,7 +32,7 @@ body {
   font-weight: 300;
   font-family: 'Lato', sans-serif;
   color: #777;
-  padding: 3rem;
+  /* padding: 3rem; */
   min-height: 100vh;
   display: -webkit-box;
   display: -ms-flexbox;
@@ -601,14 +601,24 @@ body {
 
 .reviews {
   padding: 5rem 0;
-  display: grid;
+  display: flex;
   grid-column-gap: 6rem;
   grid-auto-flow: column;
-  overflow-x: scroll;
+  overflow-x: hidden;
   -ms-scroll-snap-type: x mandatory;
   scroll-snap-type: x mandatory;
+  cursor: grab;
+  scroll-behavior: smooth;
+  user-select: none;
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+}
+
+.reviews.active {
+  cursor: grabbing;
 }
 .reviews__card {
+  flex: 0 0 auto;
   width: 30rem;
   padding: 4rem;
   background-color: #f7f7f7;
@@ -626,6 +636,12 @@ body {
   -webkit-box-align: center;
   -ms-flex-align: center;
   align-items: center;
+  cursor: grabbing;
+  user-select: none;
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+  transition: scroll-behavior 0.2s ease-out;
+  scroll-behavior: smooth;
 }
 .reviews:before,
 .reviews:after {
@@ -830,6 +846,7 @@ body {
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
+  justify-content: flex-end;
 }
 .footer__nav li {
   margin-left: 1.5rem;
